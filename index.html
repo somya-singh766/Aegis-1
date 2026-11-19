@@ -3294,8 +3294,7 @@
               </div>
               <div class="alert-row warn">
                 <div style="font-size:0.85rem">🟡</div>
-                <div style="color:var(--text-secondary);font-size:0.78rem">Heavy rain forecast Pari Chowk + Delta Thursday
-                  6–9 PM.</div>
+                <div id="rainAlertText" style="color:var(--text-secondary);font-size:0.78rem">Checking rain forecast…</div>
               </div>
               <div class="alert-row warn">
                 <div style="font-size:0.85rem">🟡</div>
@@ -4633,13 +4632,10 @@
       async function buildForecastStrip() {
         const zone = workerData?.zone || 'pari';
         const res = await apiFetch('/api/zone/' + zone + '/forecast');
-        const forecast = res?.forecast || [
-          { day: 'Mon', risk_level: 'low' }, { day: 'Tue', risk_level: 'low' },
-          { day: 'Wed', risk_level: 'high' }, { day: 'Thu', risk_level: 'high' },
-          { day: 'Fri', risk_level: 'medium' }, { day: 'Sat', risk_level: 'low' }, { day: 'Sun', risk_level: 'low' }
-        ];
+        const forecast = res?.forecast || [];
         const el = document.getElementById('forecastStrip');
         if (!el) return;
+        if (!forecast.length) { el.innerHTML = '<div style="font-size:0.72rem;color:var(--text-muted)">Forecast unavailable right now.</div>'; return; }
         el.innerHTML = forecast.map(d => {
           const col = d.risk_level === 'high' ? 'var(--danger)' : d.risk_level === 'medium' ? 'var(--warn)' : 'var(--success)';
           const payout = d.estimated_payout_if_triggered ? ` · ₹${d.estimated_payout_if_triggered} est.` : '';
@@ -4879,20 +4875,30 @@
       }
 
       // ─── RISK STRIP ───
-      const riskData = [
-        { day: 'Mon', level: 'low', color: 'var(--success)' }, { day: 'Tue', level: 'low', color: 'var(--success)' },
-        { day: 'Wed', level: 'HIGH', color: 'var(--danger)' }, { day: 'Thu', level: 'HIGH', color: 'var(--danger)' },
-        { day: 'Fri', level: 'med', color: 'var(--warn)' }, { day: 'Sat', level: 'low', color: 'var(--success)' }, { day: 'Sun', level: 'low', color: 'var(--success)' },
-      ];
-      function buildRiskStrip() {
+      function buildRiskStrip() { return refreshRiskStrip(); }
+      async function refreshRiskStrip() {
         const strip = document.getElementById('riskStrip');
         if (!strip) return;
-        strip.innerHTML = riskData.map(d => `
-    <div class="risk-day">
+        const zone = workerData?.zone || 'pari';
+        const res = await apiFetch('/api/zone/' + zone + '/forecast');
+        const fc = res?.forecast || [];
+        window._forecastData = fc;
+        if (!fc.length) { strip.innerHTML = '<div style="font-size:0.7rem;color:var(--text-muted)">Forecast unavailable</div>'; return; }
+        strip.innerHTML = fc.map(d => {
+          const color = d.risk_level === 'high' ? 'var(--danger)' : d.risk_level === 'medium' ? 'var(--warn)' : 'var(--success)';
+          const label = d.risk_level === 'high' ? 'HIGH' : d.risk_level === 'medium' ? 'med' : 'low';
+          return `<div class="risk-day">
       <div class="risk-day-name">${d.day}</div>
-      <div class="risk-dot" style="background:${d.color}"></div>
-      <div class="risk-day-label" style="color:${d.color}">${d.level}</div>
-    </div>`).join('');
+      <div class="risk-dot" style="background:${color}"></div>
+      <div class="risk-day-label" style="color:${color}">${label}</div>
+    </div>`;
+        }).join('');
+        const alertEl = document.getElementById('rainAlertText');
+        if (alertEl) {
+          const hi = fc.filter(d => d.risk_level === 'high').map(d => d.day);
+          const zn = (ZONE_COORDS[zone] || {}).name || zone;
+          alertEl.textContent = hi.length ? 'Heavy rain forecast for ' + zn + ': ' + hi.join(', ') + '.' : 'No heavy rain forecast for ' + zn + ' in the next 7 days.';
+        }
       }
 
       // ─── LEAFLET MAP ───

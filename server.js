@@ -671,28 +671,56 @@ app.get('/api/admin/zones', async (req, res) => {
   res.json({ zones });
 });
 
-app.get('/api/zone/:zoneKey/forecast', (req, res) => {
+// ─── REAL 7-DAY FORECAST (Open-Meteo hourly precipitation → daily peak mm/hr) ───
+const forecastCache = {};
+async function fetchDailyForecast(zoneKey, lat, lon) {
+  const now = Date.now();
+  if (forecastCache[zoneKey] && now - forecastCache[zoneKey].fetchedAt < 30 * 60 * 1000) return forecastCache[zoneKey].data;
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=precipitation&timezone=Asia%2FKolkata&forecast_days=7`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const byDay = {};
+    d.hourly.time.forEach((t, i) => {
+      const day = t.slice(0, 10);
+      byDay[day] = Math.max(byDay[day] || 0, d.hourly.precipitation[i] || 0);
+    });
+    const data = Object.entries(byDay).slice(0, 7).map(([date, peak]) => ({ date, peak_mm_hr: peak }));
+    forecastCache[zoneKey] = { data, fetchedAt: now };
+    return data;
+  } catch (e) {
+    console.warn(`[FORECAST] Open-Meteo failed: ${e.message}`);
+    return null;
+  }
+}
+
+app.get('/api/zone/:zoneKey/forecast', async (req, res) => {
   const zoneKey   = req.params.zoneKey;
   const threshold = zoneThresholds[zoneKey] || 15;
   const zoneInfo  = ZONES[zoneKey] || ZONES.pari;
   const zoneFlood = { pari: 0.7, surajpur: 0.9, delta: 0.5, alpha: 0.3, beta: 0.3, kp: 0.2 }[zoneKey] || 0.4;
   const month     = new Date().getMonth() / 11;
   const seasonal  = getSeasonalFactor();
-  const days      = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const forecast  = days.map((day, i) => {
-    const forecastAvg = Math.random() * 0.8;
-    const pred = predictTrigger(month, i / 6, forecastAvg, zoneFlood, seasonal);
+  const daily     = await fetchDailyForecast(zoneKey, zoneInfo.lat, zoneInfo.lon);
+  if (!daily) return res.json({ zone: zoneKey, forecast: [], weather_source: 'unavailable', model: 'GIC-FORECAST-v3.2' });
+  const forecast = daily.map(({ date, peak_mm_hr }) => {
+    const dt  = new Date(date + 'T12:00:00+05:30');
+    const dow = dt.getDay();
+    const forecastAvg = Math.min(0.8, peak_mm_hr / 25);
+    const pred = predictTrigger(month, ((dow + 6) % 7) / 6, forecastAvg, zoneFlood, seasonal);
     const trigProb = pred.trigger_probability;
-    const risk = trigProb > 0.6 ? 'high' : trigProb > 0.35 ? 'medium' : 'low';
+    // Risk follows the real forecast rain; the neural net's probability is reported alongside it.
+    const risk = peak_mm_hr >= threshold ? 'high' : peak_mm_hr >= threshold * 0.5 ? 'medium' : 'low';
     return {
-      day, date: new Date(Date.now() + i * 86400000).toISOString().split('T')[0],
+      day: dt.toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'Asia/Kolkata' }), date,
       risk_level: risk, trigger_probability: trigProb,
-      expected_rainfall_mm_hr: risk === 'high' ? threshold + 3 + Math.random() * 5 : Math.random() * threshold * 0.7,
+      expected_rainfall_mm_hr: parseFloat(peak_mm_hr.toFixed(1)),
       estimated_payout_if_triggered: risk === 'high' ? 310 : null,
       nn_source: pred.source,
     };
   });
-  res.json({ zone: zoneKey, forecast, model: 'GIC-FORECAST-v3.2' });
+  res.json({ zone: zoneKey, forecast, weather_source: 'open-meteo', model: 'GIC-FORECAST-v3.2' });
 });
 
 app.get('/api/worker/:id/safe-choice', async (req, res) => {
