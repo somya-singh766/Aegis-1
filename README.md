@@ -12,7 +12,7 @@
 2. [Screenshots](#screenshots)
 3. [Architecture Overview](#architecture-overview)
 4. [The Aegis AI Engine](#the-aegis-ai-engine)
-5. [The Trigger Monitor](#the-trigger-monitor)
+5. [The Traffic System](#the-traffic-system)
 6. [External APIs](#external-apis)
 7. [API Reference](#api-reference)
 8. [Admin Dashboard](#admin-dashboard)
@@ -20,7 +20,6 @@
 10. [Getting Started](#getting-started)
 11. [Environment Variables](#environment-variables)
 12. [What Sets Aegis Apart](#what-sets-aegis-apart)
-13. [Troubleshooting](#troubleshooting)
 
 
 ---
@@ -37,32 +36,13 @@ Aegis is a **parametric income insurance platform** built specifically for food 
 
 Coverage costs between **₹29 and ₹89/week**, computed fresh each week by a neural network that weighs zone flood risk, your streak, seasonal patterns, and a 7-day rainfall forecast.
 
-### Pilot City: Greater Noida
-
-Aegis is configured for **Greater Noida (Uttar Pradesh)**. The six pilot zones, their risk levels and coordinates are defined in `server.js` (`ZONES`) and mirrored in `index.html` (`ZONE_COORDS` and the map polygons):
-
-| Zone | Zone ID | Risk | Why |
-|---|---|---|---|
-| Surajpur | 19 | Critical | Low-lying, waterlogging-prone |
-| Pari Chowk | 14 | High | Busy junction, underpass flooding |
-| Delta | 7 | Medium | Mixed residential and commercial |
-| Alpha | 5 | Low | Planned sector, good drainage |
-| Beta | 9 | Low | Planned sector, good drainage |
-| Knowledge Park | 3 | Low | Institutional area |
-
-Zone boundaries on the map are illustrative, and risk levels are demo assumptions. Replace them with real sector and flood data before any real-world use.
-
-- **Monsoon season:** the seasonal premium factor peaks July–September (south-west monsoon), with June and October as shoulder months.
-- **Air quality:** the WAQI lookup uses the `noida` feed. Delhi-NCR winter smog makes the AQI trigger (AQI ≥ 300) especially relevant; it is planned as an independent payout trigger in Phase 4.
-- **Map:** the live map uses OpenStreetMap tiles with a dark filter, so no map API key is needed.
-
 ---
 
 ## Screenshots
 
-> Screenshots are from the original Chennai build and will be refreshed for Greater Noida.
-
 ### Admin Dashboard — Overview
+
+> _Add screenshot here: the full admin overview panel showing active policies, weekly GPW, BCR by zone, fraud flags, and payout stats_
 
 <img width="1600" height="757" alt="image" src="https://github.com/user-attachments/assets/56e8c9de-b800-489d-b0f7-a819afac4dea" />
 
@@ -70,12 +50,18 @@ Zone boundaries on the map are illustrative, and risk levels are demo assumption
 
 ### Admin Dashboard — AI Model Info Panel
 
+> _Add screenshot here: the AI model info card showing all 5 neural net models, their feature counts, training approach, and live status_
+
+`docs/screenshots/admin-model-info.png`
 <img width="1253" height="674" alt="image" src="https://github.com/user-attachments/assets/b58ac8df-ece3-49d6-9c59-8fd4a280a973" />
 
 ---
 
 ### AI Chat Assistant
 
+> _Add screenshot here: the in-app Grok-3-mini chat showing a worker asking about their premium and receiving a contextual breakdown_
+
+`docs/screenshots/ai-chat.png`
 <img width="223" height="247" alt="image" src="https://github.com/user-attachments/assets/03767df3-31f8-4e88-9d7b-ac9db6e78af7" />
 
 
@@ -124,9 +110,9 @@ Zone boundaries on the map are illustrative, and risk levels are demo assumption
 
 ---
 
-## The Aegis AI Engine
+## The GIC AI Engine
 
-Aegis runs **four purpose-trained neural networks** via `brain.js`, plus a parametric payout formula and an LLM chat layer.
+GIC runs **five purpose-trained neural networks** via `brain.js`, plus a parametric payout formula and an LLM chat layer.
 
 ---
 
@@ -176,7 +162,7 @@ A worker with a ₹310 dinner baseline in a 21mm/hr storm with a 2.5σ activity 
 
 ### AI-3 · Neural Net Fraud Detection (`GIC-NN-v3.2` — fraud head)
 
-This is Aegis's most sophisticated component. It combines **peer cohort comparison** with a **neural anomaly scorer** to distinguish genuine zone-wide disruptions from individual bad actors.
+This is GIC's most sophisticated component. It combines **peer cohort comparison** with a **neural anomaly scorer** to distinguish genuine zone-wide disruptions from individual bad actors.
 
 **Step 1 — Peer Activity Stats**
 
@@ -232,9 +218,9 @@ All flags are persisted to MongoDB with full signal breakdown for audit. The adm
 
 ---
 
-## The Trigger Monitor
+## The Traffic System
 
-Aegis's automated trigger monitor runs as a background daemon inside the Express process and is the heart of the "zero manual claims" promise.
+GIC's automated trigger monitor runs as a background daemon inside the Express process and is the heart of the "zero manual claims" promise.
 
 ### Trigger Monitor Loop
 
@@ -399,7 +385,7 @@ POST https://api.x.ai/v1/chat/completions
 
 ## Admin Dashboard
 
-The admin dashboard is embedded in `index.html` and provides full operational visibility over the Aegis platform.
+The admin dashboard is embedded in `index.html` and provides full operational visibility over the GIC platform.
 
 ### Overview Panel
 
@@ -440,7 +426,7 @@ Pulled from `/api/admin/fraud-flags`. Each flag shows:
 ### AI Model Info
 
 Displays the full model registry from `/api/ai/model-info`:
-- All 4 neural networks with feature counts and training approach
+- All 5 neural networks with feature counts and training approach
 - Grok-3-mini chat status (live key vs fallback)
 - Premium floor/ceiling
 - Adaptive zone thresholds
@@ -508,8 +494,8 @@ zone, rainfall, threshold, confirmed, timestamp
 ### Install
 
 ```bash
-git clone https://github.com/somya-singh766/Aegis-1.git
-cd Aegis-1
+git clone https://github.com/your-org/gic-backend
+cd gic-backend
 npm install
 ```
 
@@ -553,12 +539,12 @@ On startup the server will:
 ## What Sets Aegis Apart
 
 **1. Fully Parametric — No Claim Forms**
-Most gig worker insurance products still require manual filing and human adjudication. Aegis is end-to-end automatic. A worker never touches the claims process.
+Most gig worker insurance products still require manual filing and human adjudication. GIC is end-to-end automatic. A worker never touches the claims process.
 
 **2. Peer-Validated Triggers**
-Aegis doesn't just look at one worker's activity. It benchmarks against a same-platform, same-zone cohort in real time. If 60% of Swiggy workers in Pari Chowk show a drop, that's a zone event — not fraud. This is what makes the fraud detection genuinely smart rather than just a rule engine.
+GIC doesn't just look at one worker's activity. It benchmarks against a same-platform, same-zone cohort in real time. If 60% of Swiggy workers in Pari Chowk show a drop, that's a zone event — not fraud. This is what makes the fraud detection genuinely smart rather than just a rule engine.
 
-**3. Four Purpose-Built Neural Networks**
+**3. Five Purpose-Built Neural Networks**
 AI-1, AI-3, Churn, and Forecast are separate `brain.js` networks trained on domain-specific synthetic data. Each model's feature weights reflect real insurance actuarial logic, not generic ML scaffolding.
 
 **4. Adaptive Zone Thresholds**
@@ -578,16 +564,6 @@ Every claim stores its full AI-3 signal vector, peer context, rainfall reading, 
 
 ---
 
-## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| `Cannot find module 'dotenv'` (or any module) | Run `npm install` in the project folder |
-| `Database: NOT CONNECTED` / `buffering timed out` | In MongoDB Atlas, add your IP (or `0.0.0.0/0`) under Network Access, make sure the cluster is not paused, and check `MONGODB_URI` in `.env` |
-| Admin panels (BCR by zone, fraud flags) are empty | Usually the database is not connected; fix the connection above and restart |
-| Old Chennai zone names still show | Atlas already holds data from the old version. Drop the `workers`, `policies`, `claims` and `fraudflags` collections and restart to reseed |
-| Map shows "API KEY REQUIRED" tiles | Use the latest `index.html` (OpenStreetMap tiles), then hard-refresh with Ctrl+Shift+R |
-
----
-
+     
 *Aegis — Built for the 12 million gig workers in India who lose income every monsoon season with no recourse.*
