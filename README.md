@@ -1,8 +1,8 @@
-# GIC — Gig Income Coverage
+# Aegis
 ### Automatic Parametric Income Protection for Delivery Workers · Phase 3 v3.2
 
 > **No claim forms. No human adjusters. No waiting.**
-> GIC monitors weather, peer activity, and fraud signals in real-time — and pays out to UPI in under 4 minutes when a disruption is confirmed.
+> Aegis monitors weather, peer activity, and fraud signals in real-time — and pays out to UPI in under 4 minutes when a disruption is confirmed.
 
 ---
 
@@ -19,9 +19,7 @@
 9. [Database Models](#database-models)
 10. [Getting Started](#getting-started)
 11. [Environment Variables](#environment-variables)
-12. [What Sets GIC Apart](#what-sets-gic-apart)
-13. [Pitch](#pitch)
-14. [Collaborators](#collaborators)
+12. [What Sets Aegis Apart](#what-sets-aegis-apart)
 
 
 ---
@@ -538,7 +536,7 @@ On startup the server will:
 
 ---
 
-## What Sets GIC Apart
+## What Sets Aegis Apart
 
 **1. Fully Parametric — No Claim Forms**
 Most gig worker insurance products still require manual filing and human adjudication. GIC is end-to-end automatic. A worker never touches the claims process.
