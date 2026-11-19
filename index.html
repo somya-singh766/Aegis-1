@@ -2540,7 +2540,8 @@
         display: none;
       }
     }
-  </style>
+  .dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(.8) contrast(.9) saturate(.45);}
+</style>
   <!-- Razorpay checkout SDK -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -4944,7 +4945,7 @@
             lmap.fitBounds(mapZoneBounds.pad(0.12), {
               paddingTopLeft: [96, 24],
               paddingBottomRight: [24, 24],
-              maxZoom: 13.25,
+              maxZoom: 15,
               animate: false
             });
           }
@@ -4958,17 +4959,17 @@
           zoomControl: false,
           attributionControl: false,
           zoomSnap: 0.25
-        }).setView([28.472, 77.512], 13);
+        }).setView([28.472, 77.512], 14);
         setTimeout(refreshLeafletSize, 200);
         setTimeout(refreshLeafletSize, 600);
         setTimeout(refreshLeafletSize, 1200);
 
         L.control.zoom({ position: 'bottomright' }).addTo(lmap);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap &copy; CARTO',
-          subdomains: 'abcd',
-          maxZoom: 20
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          className: 'dark-tiles',
+          maxZoom: 19
         }).addTo(lmap);
 
         // Zone definitions — Greater Noida sectors (approximate illustrative boundaries, lat/lng)
@@ -5094,7 +5095,7 @@
           lmap.fitBounds(mapZoneBounds.pad(0.12), {
             paddingTopLeft: [96, 24],
             paddingBottomRight: [24, 24],
-            maxZoom: 13.25
+            maxZoom: 15
           });
         }
 
