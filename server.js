@@ -28,6 +28,10 @@ const ZONES = {
   kp: { id: 3, name: 'Knowledge Park', city: 'Greater Noida', riskLevel: 'low', lat: 28.45, lon: 77.493, activeWorkers: 692 },
 };
 
+// Old Chennai zone keys → new Greater Noida zones (for data saved before the switch)
+const LEGACY_ZONES = { adyar: 'pari', tnagar: 'alpha', mylapore: 'beta', velachery: 'surajpur', guindy: 'delta', egmore: 'kp' };
+const normZone = k => LEGACY_ZONES[k] || k;
+
 const ZONE_RISK_MAP  = { low: 0.15, medium: 0.42, high: 0.68, critical: 0.90 };
 const zoneThresholds = { pari: 14, alpha: 15, beta: 15, surajpur: 14, delta: 15, kp: 15 };
 
@@ -453,10 +457,11 @@ app.get('/api/worker/:id/claims', async (req, res) => {
 });
 
 app.get('/api/zone/:zoneKey/conditions', async (req, res) => {
-  const zone = ZONES[req.params.zoneKey];
+  const zoneKey = normZone(req.params.zoneKey);
+  const zone = ZONES[zoneKey];
   if (!zone) return res.status(404).json({ error: 'Zone not found' });
-  const weather   = await fetchOpenMeteo(req.params.zoneKey, zone.lat, zone.lon);
-  const threshold = zoneThresholds[req.params.zoneKey] || 15;
+  const weather   = await fetchOpenMeteo(zoneKey, zone.lat, zone.lon);
+  const threshold = zoneThresholds[zoneKey] || 15;
   res.json({
     zone, trigger_state: weather.trigger_state, weather_source: weather.source, aqi_source: waqiCache.value !== null ? 'waqi' : 'simulation',
     adaptive_threshold: threshold, last_updated: weather.fetched_at,
@@ -696,7 +701,7 @@ async function fetchDailyForecast(zoneKey, lat, lon) {
 }
 
 app.get('/api/zone/:zoneKey/forecast', async (req, res) => {
-  const zoneKey   = req.params.zoneKey;
+  const zoneKey   = normZone(req.params.zoneKey);
   const threshold = zoneThresholds[zoneKey] || 15;
   const zoneInfo  = ZONES[zoneKey] || ZONES.pari;
   const zoneFlood = { pari: 0.7, surajpur: 0.9, delta: 0.5, alpha: 0.3, beta: 0.3, kp: 0.2 }[zoneKey] || 0.4;
@@ -769,7 +774,19 @@ app.use((err, req, res, next) => {
 // ─── START ───
 async function start() {
   dbReady = await connectDB();
-  if (dbReady) await seedDefaults();
+  if (dbReady) {
+    await seedDefaults();
+    // One-time migration of any old Chennai zone names stored in MongoDB
+    try {
+      for (const [oldKey, newKey] of Object.entries(LEGACY_ZONES)) {
+        const w = await Worker.updateMany({ zone: oldKey }, { $set: { zone: newKey, zoneId: ZONES[newKey].id } });
+        const f = await FraudFlag.updateMany({ zone: oldKey }, { $set: { zone: newKey } });
+        const t = await TriggerHistory.updateMany({ zone: oldKey }, { $set: { zone: newKey } });
+        const n = (w.modifiedCount || 0) + (f.modifiedCount || 0) + (t.modifiedCount || 0);
+        if (n) console.log(`[DB] Migrated ${n} record(s): ${oldKey} -> ${newKey}`);
+      }
+    } catch (e) { console.warn('[DB] Zone migration skipped:', e.message); }
+  }
 
   trainAllModels();
 
