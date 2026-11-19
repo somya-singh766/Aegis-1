@@ -8,10 +8,10 @@
 
 ## Table of Contents
 
-1. [What is GIC?](#what-is-gic)
+1. [What is Aegis?](#what-is-aegis)
 2. [Screenshots](#screenshots)
 3. [Architecture Overview](#architecture-overview)
-4. [The GIC AI Engine](#the-gic-ai-engine)
+4. [The Aegis AI Engine](#the-aegis-ai-engine)
 5. [The Traffic System](#the-traffic-system)
 6. [External APIs](#external-apis)
 7. [API Reference](#api-reference)
@@ -26,9 +26,9 @@
 
 ---
 
-## What is GIC?
+## What is Aegis?
 
-GIC (Gig Income Coverage) is a **parametric income insurance platform** built specifically for food delivery workers in Greater Noida. Instead of the traditional insurance model — file a claim, wait for an adjuster, maybe get paid weeks later — GIC works on a trigger-based, fully automated pipeline:
+Aegis is a **parametric income insurance platform** built specifically for food delivery workers in Greater Noida. Instead of the traditional insurance model — file a claim, wait for an adjuster, maybe get paid weeks later — Aegis works on a trigger-based, fully automated pipeline:
 
 1. Rain crosses your zone's threshold (≥15 mm/hr by default)
 2. Your order activity drops >1.5σ below your personal baseline
@@ -566,53 +566,7 @@ Every claim stores its full AI-3 signal vector, peer context, rainfall reading, 
 
 ---
 
-## Pitch Deck
 
-Link for Pitch Deck - https://docs.google.com/presentation/d/1gg-y3pf1Vrq_z-IqS6rlKz-l2R6qjkZR/edit?usp=sharing&ouid=115617659625771048360&rtpof=true&sd=true
-
----
-
-## Collaborators
-
-<table align="center">
-  <tr>
-    <td align="center">
-      <a href="https://github.com/Samarth230">
-        <img src="https://github.com/Samarth230.png" width="80px"/><br/>
-        <sub><b>Samarth230</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/rohanrpais">
-        <img src="https://github.com/rohanrpais.png" width="80px"/><br/>
-        <sub><b>rohanrpais</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/devu2406">
-        <img src="https://github.com/devu2406.png" width="80px"/><br/>
-        <sub><b>devu2406</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/Chandroja3011">
-        <img src="https://github.com/Chandroja3011.png" width="80px"/><br/>
-        <sub><b>Chandroja3011</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/AryanSingh2025">
-        <img src="https://github.com/AryanSingh2025.png" width="80px"/><br/>
-        <sub><b>AryanSingh2025</b></sub>
-      </a>
-    </td>
-  </tr>
-</table>
-
----
-
-## Team
-
-**CARDS** · Guidewire DEVTrails 2026 · Unicorn Chase
-*GIC — Built for the 12 million gig workers in India who lose income every monsoon season with no recourse.*
+     
+*Aegis — Built for the 12 million gig workers in India who lose income every monsoon season with no recourse.*
 
